@@ -194,6 +194,23 @@ for (const trick of TRICKS) {
     TYPE_NAMES[trick.id] = trick.name;
 }
 
+// Very short trick names, for the compact setup names in the records tables
+const SHORT_NAMES = {
+    "add-carry": "Carries",
+    "sub-complement": "100/1000 –",
+    "sub-cross": "Across 100",
+    "mul-11": "×11",
+    "mul-12": "×12",
+    "mul-5-25": "×5/×25",
+    "mul-round": "Round & adjust",
+    "mul-split": "Split ×",
+    "square": "Squares",
+    "square-5": "Squares of x5",
+    "same-tens": "Same tens",
+    "div-9": "÷9",
+    "div-11": "÷11",
+};
+
 // Build the trick checkboxes on the setup screen
 function buildTrickList() {
     const list = $("trick-list");
@@ -301,6 +318,34 @@ function settingsLabel(s) {
     if (s.mul || s.div) parts.push(`×÷ (${s.mulA[0]}–${s.mulA[1]}, ${s.mulB[0]}–${s.mulB[1]})`);
     const ops = ["add", "sub", "mul", "div"].filter(op => s[op]).map(op => TYPE_NAMES[op]);
     return "Standard: " + ops.join(", ") + " " + parts.join(" ");
+}
+
+// The label for the default standard settings
+const DEFAULT_LABEL = settingsLabel({
+    mode: "standard",
+    add: true, sub: true, mul: true, div: true,
+    addA: [2, 100], addB: [2, 100], mulA: [2, 12], mulB: [2, 100],
+});
+
+// A shorter version of a label for the records tables.
+// The full label is still what gets saved, so games keep grouping together.
+function displayLabel(label) {
+    if (label.startsWith("Tricks: ")) {
+        const tricks = TRICKS.filter(t => label.includes(t.name));
+        if (tricks.length === TRICKS.length) return "Tricks: all";
+        return "Tricks: " + tricks.map(t => SHORT_NAMES[t.id]).join(", ");
+    }
+    if (label === DEFAULT_LABEL) return "Standard";
+
+    // Custom standard settings: operation symbols, then the ranges
+    const symbols = [["Addition", "+"], ["Subtraction", "–"], ["Multiplication", "×"], ["Division", "÷"]]
+        .filter(([name]) => label.includes(name))
+        .map(([, symbol]) => symbol)
+        .join(" ");
+    const ranges = [...label.matchAll(/\(([^)]*)\)/g)]
+        .map(match => match[1].replace(", ", " & "))
+        .join(" · ");
+    return `${symbols} (${ranges})`;
 }
 
 
@@ -631,9 +676,7 @@ function showResults(game, previousBest) {
 
 async function showRecords() {
     renderAccount();
-    $("records-where").textContent = user
-        ? "Records are saved to your account."
-        : "Records are saved in this browser only.";
+    $("records-where").textContent = user ? "" : "Records are saved in this browser only.";
 
     const games = await loadGames();
     if (games.length === 0) {
@@ -651,9 +694,9 @@ async function showRecords() {
         groups[key].played += 1;
         groups[key].total += g.score;
     }
-    let html = "<h2>Personal bests</h2><table><tr><th>Settings</th><th class='num'>Time</th><th class='num'>Games</th><th class='num'>Avg</th><th class='num'>Best</th></tr>";
+    let html = "<h2>Personal bests</h2><table><tr><th>Setup</th><th class='num'>Time</th><th class='num'>Games</th><th class='num'>Avg</th><th class='num'>Best</th></tr>";
     for (const grp of Object.values(groups).sort((a, b) => b.played - a.played)) {
-        html += `<tr><td>${escapeHtml(grp.label)}</td><td class="num">${grp.duration}s</td><td class="num">${grp.played}</td>` +
+        html += `<tr><td>${escapeHtml(displayLabel(grp.label))}</td><td class="num">${grp.duration}s</td><td class="num">${grp.played}</td>` +
             `<td class="num">${(grp.total / grp.played).toFixed(1)}</td><td class="num"><b>${grp.best}</b></td></tr>`;
     }
     html += "</table>";
@@ -670,10 +713,10 @@ async function showRecords() {
     html += "<h2>Speed by problem type (slowest first)</h2>" + speedTable(allStats);
 
     // Most recent games
-    html += "<h2>Recent games</h2><table><tr><th>Date</th><th>Settings</th><th class='num'>Time</th><th class='num'>Score</th></tr>";
-    for (const g of games.slice(-20).reverse()) {
-        const date = new Date(g.date).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-        html += `<tr><td>${date}</td><td>${escapeHtml(g.label)}</td><td class="num">${g.duration}s</td><td class="num">${g.score}</td></tr>`;
+    html += "<h2>Recent games</h2><table><tr><th>Date</th><th>Setup</th><th class='num'>Time</th><th class='num'>Score</th></tr>";
+    for (const g of games.slice(-10).reverse()) {
+        const date = new Date(g.date).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+        html += `<tr><td class="nowrap">${date}</td><td>${escapeHtml(displayLabel(g.label))}</td><td class="num">${g.duration}s</td><td class="num">${g.score}</td></tr>`;
     }
     html += "</table>";
 
@@ -725,10 +768,13 @@ if (db) {
     });
 }
 
-// Esc during a game quits back to the setup screen (the game isn't saved)
+// Home link or Esc during a game: quit back to the setup screen (the game isn't saved)
+function quitGame() {
+    clearInterval(timerId);
+    showScreen("setup");
+}
+
+$("home-btn").addEventListener("click", quitGame);
 document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !$("game").hidden) {
-        clearInterval(timerId);
-        showScreen("setup");
-    }
+    if (event.key === "Escape" && !$("game").hidden) quitGame();
 });

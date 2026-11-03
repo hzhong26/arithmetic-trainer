@@ -87,6 +87,7 @@
             <span id="problem"></span> = <input type="text" id="answer" autocomplete="off" inputmode="numeric">
         </div>
         <div id="hint"></div>
+        <button id="home-btn" class="home-link">Home</button>
     </div>
 
     <!-- ========== RESULTS SCREEN ========== -->
@@ -121,15 +122,16 @@
                     <button id="signup-btn">Create account</button>
                 </div>
             </div>
-            <p id="account-in">
-                Signed in as <b id="account-email"></b>
-                <button id="signout-btn">Sign out</button>
-            </p>
             <p id="account-msg"></p>
         </div>
 
-        <p id="records-where" class="note"></p>
         <div id="records-content"></div>
+
+        <p id="account-in" class="small">
+            Saved to <span id="account-email"></span> ·
+            <button id="signout-btn" class="text-link">Sign out</button>
+        </p>
+        <p id="records-where" class="small"></p>
         <div class="buttons">
             <button id="clear-btn">Clear all records</button>
             <button id="back-btn">Back</button>

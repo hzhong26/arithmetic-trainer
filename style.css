@@ -132,6 +132,23 @@ input[type="number"]::-webkit-outer-spin-button {
     font-family: inherit;
 }
 
+.home-link {
+    position: fixed;
+    left: 20px;
+    bottom: 16px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #aaa;
+    font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+    cursor: pointer;
+}
+
+.home-link:hover {
+    color: #555;
+    text-decoration: underline;
+}
+
 #hint {
     margin-top: 12px;
     text-align: center;
@@ -166,5 +183,25 @@ th.num {
 
 h2 {
     font-size: 1.15em;
-    margin: 16px 0 4px;
+    margin: 24px 0 4px;
+}
+
+td.nowrap {
+    white-space: nowrap;
+}
+
+/* Small gray account line under the records */
+.small {
+    font-size: 12px;
+    color: #666;
+}
+
+.text-link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: #0044cc;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
 }
