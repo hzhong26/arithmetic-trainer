@@ -7,5 +7,5 @@
 // The anon key is meant to be public. The database rules in
 // supabase-setup.sql make sure each person only sees their own games.
 
-const SUPABASE_URL = "";
-const SUPABASE_ANON_KEY = "";
+const SUPABASE_URL = "https://urrboztkwaluqdgjramt.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_c6fPIkCP72sIHL3I1VbiWg_XXhhFpmw";
