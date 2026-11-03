@@ -22,6 +22,7 @@ function showScreen(id) {
     for (const screen of ["setup", "game", "results", "records"]) {
         $(screen).hidden = screen !== id;
     }
+    $("home-btn").hidden = id === "setup";
 }
 
 
@@ -768,7 +769,8 @@ if (db) {
     });
 }
 
-// Home link or Esc during a game: quit back to the setup screen (the game isn't saved)
+// Home link (any screen) or Esc during a game: back to the landing page.
+// A game in progress is stopped and not saved.
 function quitGame() {
     clearInterval(timerId);
     showScreen("setup");
