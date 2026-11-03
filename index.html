@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Arithmetic Trainer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ========== SETUP SCREEN ========== -->
+    <div id="setup" class="panel">
+        <h1>Arithmetic Trainer</h1>
+        <p>
+            A fast-paced speed drill: solve as many arithmetic problems as you can
+            before the time runs out. Play the standard mix, or drill specific
+            mental math tricks one at a time.
+        </p>
+
+        <div class="row">
+            Mode:
+            <label><input type="radio" name="mode" value="standard" checked> Standard</label>
+            <label><input type="radio" name="mode" value="tricks"> Trick drills</label>
+        </div>
+
+        <!-- Standard mode options -->
+        <div id="standard-options">
+            <div class="op">
+                <label><input type="checkbox" id="add-on" checked> Addition</label>
+                <div class="range">
+                    Range: (<input type="number" id="add-a-min" value="2"> to <input type="number" id="add-a-max" value="100">)
+                    + (<input type="number" id="add-b-min" value="2"> to <input type="number" id="add-b-max" value="100">)
+                </div>
+            </div>
+            <div class="op">
+                <label><input type="checkbox" id="sub-on" checked> Subtraction</label>
+                <div class="range">Addition problems in reverse.</div>
+            </div>
+            <div class="op">
+                <label><input type="checkbox" id="mul-on" checked> Multiplication</label>
+                <div class="range">
+                    Range: (<input type="number" id="mul-a-min" value="2"> to <input type="number" id="mul-a-max" value="12">)
+                    × (<input type="number" id="mul-b-min" value="2"> to <input type="number" id="mul-b-max" value="100">)
+                </div>
+            </div>
+            <div class="op">
+                <label><input type="checkbox" id="div-on" checked> Division</label>
+                <div class="range">Multiplication problems in reverse.</div>
+            </div>
+        </div>
+
+        <!-- Trick drill options (filled in by script.js) -->
+        <div id="trick-options" hidden>
+            <p class="note">Pick one or more tricks. Only those problems will appear.</p>
+            <div id="trick-list"></div>
+            <div class="row">
+                <label><input type="checkbox" id="show-hints" checked> Show a hint under each problem</label>
+            </div>
+        </div>
+
+        <div class="row">
+            Duration:
+            <select id="duration">
+                <option value="30">30 seconds</option>
+                <option value="60">60 seconds</option>
+                <option value="120" selected>120 seconds</option>
+                <option value="300">300 seconds</option>
+                <option value="600">600 seconds</option>
+            </select>
+        </div>
+
+        <div id="setup-error" class="error"></div>
+
+        <div class="buttons">
+            <button id="records-btn">Records</button>
+            <button id="start-btn">Start</button>
+        </div>
+    </div>
+
+    <!-- ========== GAME SCREEN ========== -->
+    <div id="game" hidden>
+        <div class="top">
+            <span>Seconds left: <span id="timer">120</span></span>
+            <span>Score: <span id="score">0</span></span>
+        </div>
+        <div class="band">
+            <span id="problem"></span> = <input type="text" id="answer" autocomplete="off" inputmode="numeric">
+        </div>
+        <div id="hint"></div>
+    </div>
+
+    <!-- ========== RESULTS SCREEN ========== -->
+    <div id="results" hidden>
+        <div class="band">
+            Score: <span id="final-score">0</span>
+        </div>
+        <div class="results-body">
+            <p id="best-message"></p>
+            <div id="breakdown"></div>
+            <div class="buttons">
+                <button id="settings-btn">Change settings</button>
+                <button id="again-btn">Try again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== RECORDS SCREEN ========== -->
+    <div id="records" class="panel" hidden>
+        <h1>Records</h1>
+
+        <!-- Online account (only shown once config.js has Supabase keys) -->
+        <div id="account" hidden>
+            <div id="account-out">
+                <p>Sign in to save your records online and see them on any device.</p>
+                <div class="account-form">
+                    <input type="email" id="email" placeholder="Email" autocomplete="email">
+                    <input type="password" id="password" placeholder="Password (6+ characters)" autocomplete="current-password">
+                </div>
+                <div class="account-form">
+                    <button id="signin-btn">Sign in</button>
+                    <button id="signup-btn">Create account</button>
+                </div>
+            </div>
+            <p id="account-in">
+                Signed in as <b id="account-email"></b>
+                <button id="signout-btn">Sign out</button>
+            </p>
+            <p id="account-msg"></p>
+        </div>
+
+        <p id="records-where" class="note"></p>
+        <div id="records-content"></div>
+        <div class="buttons">
+            <button id="clear-btn">Clear all records</button>
+            <button id="back-btn">Back</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

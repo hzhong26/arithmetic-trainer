@@ -1,0 +1,170 @@
+/* Sizes match the original arithmetic game's stylesheet */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #fff;
+    color: #000;
+    font: 14px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* ---------- Gray setup / records box ---------- */
+.panel {
+    width: 440px;
+    max-width: calc(100% - 40px);
+    padding: 20px;
+    margin: 0 auto;
+    background: #ddd;
+    overflow: hidden;
+}
+
+.row {
+    margin: 1em 0;
+}
+
+.row label {
+    margin-left: 6px;
+}
+
+/* The operation list works like the original's <dl>: label line, then an indented line */
+#standard-options,
+#trick-options {
+    margin: 1em 0;
+}
+
+.range {
+    margin-left: 40px;
+    margin-bottom: 0.5em;
+}
+
+input[type="number"] {
+    width: 34px;
+    margin: 0 2px;
+    text-align: right;
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+.buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.error,
+#account-msg {
+    color: #b00;
+}
+
+/* ---------- Account box on the Records screen ---------- */
+#account {
+    padding-bottom: 4px;
+    border-bottom: 1px solid #bbb;
+}
+
+.account-form {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.account-form input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ---------- Trick list ---------- */
+.trick {
+    margin-bottom: 0.5em;
+}
+
+.trick .example {
+    color: #555;
+    margin-left: 6px;
+}
+
+/* ---------- Game screen ---------- */
+#game {
+    min-height: 300px;
+}
+
+.top span {
+    font-size: 18px;
+}
+
+.top > span {
+    position: absolute;
+    top: 20px;
+}
+
+.top > span:first-child {
+    left: 20px;
+}
+
+.top > span:last-child {
+    right: 20px;
+}
+
+.band {
+    margin-top: 240px;
+    padding: 10px 0;
+    line-height: 54px;
+    font-size: 36px;
+    text-align: center;
+    background: #ddd;
+}
+
+#answer {
+    width: 180px;
+    font-size: 36px;
+    font-family: inherit;
+}
+
+#hint {
+    margin-top: 12px;
+    text-align: center;
+    color: #555;
+}
+
+/* ---------- Results / records ---------- */
+.results-body {
+    width: 440px;
+    max-width: calc(100% - 40px);
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4px 0 16px;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 3px 4px;
+    border-bottom: 1px solid #bbb;
+}
+
+td.num,
+th.num {
+    text-align: right;
+}
+
+h2 {
+    font-size: 1.15em;
+    margin: 16px 0 4px;
+}
