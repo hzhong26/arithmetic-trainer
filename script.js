@@ -695,7 +695,12 @@ async function showRecords() {
         groups[key].played += 1;
         groups[key].total += g.score;
     }
-    let html = "<h2>Personal bests</h2><table><tr><th>Setup</th><th class='num'>Time</th><th class='num'>Games</th><th class='num'>Avg</th><th class='num'>Best</th></tr>";
+    // Progress chart (drawn into #chart below, once the HTML is on the page)
+    let html = "<h2>Progress</h2>" +
+        "<div class='chart-controls'>Show: <select id='chart-select'></select></div>" +
+        "<div id='chart'></div>";
+
+    html += "<h2>Personal bests</h2><table><tr><th>Setup</th><th class='num'>Time</th><th class='num'>Games</th><th class='num'>Avg</th><th class='num'>Best</th></tr>";
     for (const grp of Object.values(groups).sort((a, b) => b.played - a.played)) {
         html += `<tr><td>${escapeHtml(displayLabel(grp.label))}</td><td class="num">${grp.duration}s</td><td class="num">${grp.played}</td>` +
             `<td class="num">${(grp.total / grp.played).toFixed(1)}</td><td class="num"><b>${grp.best}</b></td></tr>`;
@@ -722,7 +727,124 @@ async function showRecords() {
     html += "</table>";
 
     $("records-content").innerHTML = html;
+    setUpChart(games, Object.values(groups).sort((a, b) => b.played - a.played));
     showScreen("records");
+}
+
+
+// ============================================================
+// Progress chart: a plain line graph drawn with SVG
+// ============================================================
+
+let chartGames = [];
+
+// Fill the "Show:" dropdown and draw the default view
+function setUpChart(games, groups) {
+    chartGames = games;
+    const select = $("chart-select");
+    select.add(new Option("All games (problems per minute)", "all"));
+    for (const grp of groups) {
+        select.add(new Option(`${displayLabel(grp.label)}, ${grp.duration}s (score)`, grp.label + "|" + grp.duration));
+    }
+    select.addEventListener("change", drawChart);
+    drawChart();
+}
+
+// The points to plot for the dropdown's current choice
+function chartPoints(choice) {
+    if (choice === "all") {
+        // Problems per minute, so games of different lengths can share one line
+        return chartGames.map(g => ({ value: g.score / (g.duration / 60), game: g }));
+    }
+    return chartGames
+        .filter(g => g.label + "|" + g.duration === choice)
+        .map(g => ({ value: g.score, game: g }));
+}
+
+// A round number for axis steps: 1, 2 or 5 × a power of 10
+function niceStep(rough) {
+    const power = Math.pow(10, Math.floor(Math.log10(rough)));
+    const m = rough / power;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * power;
+}
+
+function drawChart() {
+    const choice = $("chart-select").value;
+    const points = chartPoints(choice);
+    const unit = choice === "all" ? "per min" : "points";
+
+    // Chart size (in SVG units; it scales to the box width)
+    const W = 440, H = 180, left = 32, right = 8, top = 10, bottom = 24;
+    const step = niceStep(Math.max(1, Math.max(...points.map(p => p.value))) / 4);
+    const maxV = Math.ceil(Math.max(...points.map(p => p.value), step) / step) * step;
+    const gap = points.length > 1 ? (W - left - right) / (points.length - 1) : 0;
+    const x = i => points.length > 1 ? left + i * gap : (left + W - right) / 2;
+    const y = v => top + (H - top - bottom) * (1 - v / maxV);
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Line graph of ${unit === "per min" ? "problems per minute" : "score"} for each game">`;
+
+    // Horizontal grid lines with their values
+    for (let v = 0; v <= maxV + 1e-9; v += step) {
+        svg += `<line x1="${left}" x2="${W - right}" y1="${y(v)}" y2="${y(v)}" class="${v === 0 ? "baseline" : "grid"}"/>`;
+        svg += `<text x="${left - 6}" y="${y(v) + 4}" text-anchor="end">${+v.toFixed(1)}</text>`;
+    }
+
+    // Game numbers along the bottom (first and last only, to keep it plain)
+    svg += `<text x="${x(0)}" y="${H - 6}" text-anchor="${points.length > 1 ? "start" : "middle"}">Game 1</text>`;
+    if (points.length > 1) {
+        svg += `<text x="${x(points.length - 1)}" y="${H - 6}" text-anchor="end">Game ${points.length}</text>`;
+    }
+
+    // The line, then a dot on each game (dots are left out when there are many games)
+    const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(p.value)}`).join(" ");
+    svg += `<path d="${path}" class="line"/>`;
+    if (points.length <= 40) {
+        for (let i = 0; i < points.length; i++) {
+            svg += `<circle cx="${x(i)}" cy="${y(points[i].value)}" r="4" class="dot"/>`;
+        }
+    }
+
+    // Hover marker: a vertical line and a highlighted dot, hidden until hover
+    svg += `<line id="chart-cross" y1="${top}" y2="${H - bottom}" class="cross" visibility="hidden"/>`;
+    svg += `<circle id="chart-focus" r="5" class="dot focus" visibility="hidden"/>`;
+    svg += "</svg><div id='chart-tip' hidden></div>";
+
+    const box = $("chart");
+    box.innerHTML = svg;
+
+    // Hovering anywhere over the chart picks the nearest game
+    const svgEl = box.querySelector("svg");
+    svgEl.addEventListener("pointermove", event => {
+        const rect = svgEl.getBoundingClientRect();
+        const sx = (event.clientX - rect.left) * W / rect.width;
+        const i = points.length > 1 ? Math.min(points.length - 1, Math.max(0, Math.round((sx - left) / gap))) : 0;
+        const p = points[i];
+
+        $("chart-cross").setAttribute("x1", x(i));
+        $("chart-cross").setAttribute("x2", x(i));
+        $("chart-cross").setAttribute("visibility", "visible");
+        $("chart-focus").setAttribute("cx", x(i));
+        $("chart-focus").setAttribute("cy", y(p.value));
+        $("chart-focus").setAttribute("visibility", "visible");
+
+        const date = new Date(p.game.date).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+        const value = unit === "per min" ? `${p.value.toFixed(1)} per min (score ${p.game.score} in ${p.game.duration}s)` : `Score ${p.value}`;
+        const tip = $("chart-tip");
+        tip.innerHTML = `<b>Game ${i + 1}</b> · ${date}<br>${value}` +
+            (unit === "per min" ? `<br>${escapeHtml(displayLabel(p.game.label))}` : "");
+        tip.hidden = false;
+
+        // Keep the tooltip inside the chart box
+        const px = x(i) * rect.width / W;
+        const tipWidth = tip.offsetWidth;
+        tip.style.left = (px + 10 + tipWidth > rect.width ? px - 10 - tipWidth : px + 10) + "px";
+        tip.style.top = Math.max(0, y(p.value) * rect.height / H - tip.offsetHeight - 8) + "px";
+    });
+    svgEl.addEventListener("pointerleave", () => {
+        $("chart-cross").setAttribute("visibility", "hidden");
+        $("chart-focus").setAttribute("visibility", "hidden");
+        $("chart-tip").hidden = true;
+    });
 }
 
 
@@ -744,8 +866,14 @@ $("records-btn").addEventListener("click", showRecords);
 $("back-btn").addEventListener("click", () => showScreen("setup"));
 $("answer").addEventListener("input", checkAnswer);
 
-$("clear-btn").addEventListener("click", async () => {
-    if (confirm("Delete all saved games? This can't be undone.")) {
+// "Clear all records" opens a dialog first; only its "Clear all records" button deletes
+$("clear-btn").addEventListener("click", () => {
+    $("confirm-dialog").returnValue = "cancel";
+    $("confirm-dialog").showModal();
+});
+
+$("confirm-dialog").addEventListener("close", async () => {
+    if ($("confirm-dialog").returnValue === "clear") {
         await clearGames();
         showRecords();
     }

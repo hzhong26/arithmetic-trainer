@@ -137,6 +137,18 @@
         </div>
     </div>
 
+    <!-- Asks before "Clear all records" deletes anything -->
+    <dialog id="confirm-dialog">
+        <form method="dialog">
+            <p><b>Are you sure that you want to clear all your records?</b></p>
+            <p>Every saved game will be deleted. This can't be undone.</p>
+            <div class="buttons">
+                <button value="cancel" autofocus>Cancel</button>
+                <button value="clear">Clear all records</button>
+            </div>
+        </form>
+    </dialog>
+
     <!-- Small link back to the landing page, in the bottom-left corner of every other screen -->
     <button id="home-btn" class="home-link" hidden>Home</button>
 
