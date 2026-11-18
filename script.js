@@ -746,6 +746,12 @@ function setUpChart(games, groups) {
     for (const grp of groups) {
         select.add(new Option(`${displayLabel(grp.label)}, ${grp.duration}s (score)`, grp.label + "|" + grp.duration));
     }
+    // Start on Standard (default settings): the 120s games if there are any,
+    // otherwise the Standard length played most. No Standard games: all games.
+    const standard = groups.filter(grp => grp.label === DEFAULT_LABEL);
+    const start = standard.find(grp => grp.duration === 120) || standard[0];
+    if (start) select.value = start.label + "|" + start.duration;
+
     select.addEventListener("change", drawChart);
     drawChart();
 }
